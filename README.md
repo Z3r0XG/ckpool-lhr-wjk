@@ -1,15 +1,15 @@
-# CKPOOL-LHR
+# CKPOOL-LHR-WJK
 
-A fork of CKPool featuring sub-"1" difficulty support for low hash rate miners
-(ESP32 devices and others), along with additional enhancements for solo mining.
+A fork of CKPool-LHR adding Wojak Coin (WJK) SHA256d solo mining support,
+with sub-"1" difficulty support for low hash rate miners (ESP32 devices and others).
 
-Ultra low overhead, scalable, multi-process, multi-threaded Bitcoin mining
+Ultra low overhead, scalable, multi-process, multi-threaded WJK mining
 pool software in C for Linux.
 
 ## Key Features
 
 - Sub-"1" difficulty support for low hash rate miners
-- Bitcoind cookie authentication
+- Wojakcoind cookie authentication
 - User agent whitelisting
 - User agent reporting (pool.status and user pages)
 - Network difficulty monitoring (pool.status)
@@ -37,13 +37,13 @@ Con Kolivas's foundational work that made this fork possible.
 
 **Features:**
 
-- Bitcoind communication with multiple failover to local or remote locations
+- Wojakcoind communication with multiple failover to local or remote locations
 - Virtually seamless restarts for upgrades through socket handover
 - Configurable custom coinbase signature
 - Configurable instant starting and minimum difficulty (including sub-1.0 for low hashrate miners)
 - Rapid vardiff adjustment with stable unlimited maximum difficulty handling
 - Password-based difficulty suggestion for clients without mining.suggest_difficulty support
-- New work generation on block changes incorporate full bitcoind transaction set without delay
+- New work generation on block changes incorporate full wojakcoind transaction set without delay
 - Stratum messaging system to running clients
 - Accurate pool and per-client statistics with user agent tracking
 - Multiple named instances can run concurrently on the same machine
@@ -56,7 +56,7 @@ GNU Public license V3. See included COPYING for details.
 
 # Building
 
-Building ckpool-lhr requires basic build tools and yasm on any Linux installation. ZMQ notification support (recommended) requires the zmq devel library installed.
+Building ckpool-lhr-wjk requires basic build tools and yasm on any Linux installation. ZMQ notification support (recommended) requires the zmq devel library installed.
 
 ### Building with ZMQ (recommended)
 
@@ -79,8 +79,8 @@ make
 Requires additional autotools:
 
 ```bash
-git clone https://github.com/Z3r0XG/ckpool-lhr.git
-cd ckpool-lhr
+git clone https://github.com/Z3r0XG/ckpool-lhr-wjk.git
+cd ckpool-lhr-wjk
 sudo apt-get install build-essential yasm autoconf automake libtool libzmq3-dev pkgconf
 ./autogen.sh
 ./configure
@@ -93,7 +93,7 @@ Binaries will be built in the `src/` subdirectory:
 
 - **ckpool** - The main pool backend
 - **ckpmsg** - Application for passing messages to ckpool
-- **notifier** - Application for bitcoind's `-blocknotify` to notify ckpool of block changes
+- **notifier** - Application for wojakcoind's `-blocknotify` to notify ckpool of block changes
 
 ### Installation
 
@@ -118,8 +118,8 @@ make check
 
 ## Use Case
 
-Solo mode allows miners to mine directly to their own Bitcoin address without
-pooling with others. Each miner specifies their Bitcoin address as their
+Solo mode allows miners to mine directly to their own WJK address without
+pooling with others. Each miner specifies their WJK address as their
 username, and any blocks found are paid directly to that address.
 
 **Ideal for:**
@@ -130,13 +130,13 @@ username, and any blocks found are paid directly to that address.
 
 ## How Solo Mode Works
 
-In solo mode, ckpool-lhr connects to a Bitcoin daemon (bitcoind) to receive
-block templates. Miners connect and provide their Bitcoin address as their
+In solo mode, ckpool-lhr-wjk connects to a Wojak Coin daemon (wojakcoind) to receive
+block templates. Miners connect and provide their WJK address as their
 username. When a block is found, the reward goes directly to the miner's
 specified address.
 
-**Workflow**: Bitcoind provides block template → Pool generates work → Miner
-connects with Bitcoin address as username → Miner submits shares → Block found →
+**Workflow**: Wojakcoind provides block template → Pool generates work → Miner
+connects with WJK address as username → Miner submits shares → Block found →
 Reward sent directly to miner's address.
 
 ---
@@ -185,24 +185,11 @@ Reward sent directly to miner's address.
 
 ## Quick Start
 
-### Option 1: Automated Installation
+> This software requires a Wojak Coin (WJK) node running. Tested with [WojakCore](https://github.com/wojakcore/wojakcore) v1.12.1.
 
-> [!TIP]
-> **Recommended for most users.** This script handles all dependencies and configuration.
+#### 1. Configure Wojak Coin Daemon
 
-Run the installation script as root/sudo:
-```bash
-sudo ./scripts/install-ckpool-solo.sh
-```
-
-This automatically installs Bitcoin Core and ckpool-lhr, sets up systemd
-services, and configures everything for solo mining.
-
-### Option 2: Manual Setup
-
-#### 1. Configure Bitcoin Daemon
-
-Edit `bitcoin.conf` to enable RPC:
+Edit `bitcoin.conf` (wojakcoind's config file) to enable RPC:
 ```
 server=1
 rpcuser=username
@@ -213,7 +200,7 @@ rpcbind=127.0.0.1
 
 Enable ZMQ block notifications (recommended):
 ```
-zmqpubhashblock=tcp://127.0.0.1:28332
+zmqpubhashblock=tcp://127.0.0.1:28340
 ```
 
 Or use the notifier script as an alternative:
@@ -233,7 +220,7 @@ Edit `ckpool.conf` with required settings:
 {
 "btcd" : [
     {
-        "url" : "127.0.0.1:8332",
+        "url" : "127.0.0.1:20760",
         "auth" : "username",
         "pass" : "password",
         "notify" : true
@@ -243,7 +230,7 @@ Edit `ckpool.conf` with required settings:
 }
 ```
 
-#### 3. Start ckpool-lhr in Solo Mode
+#### 3. Start ckpool-lhr-wjk in Solo Mode
 
 ```bash
 src/ckpool -B
@@ -253,12 +240,12 @@ src/ckpool -B
 
 Point mining hardware to the pool:
 - **URL**: `192.168.1.100:3333` (pool IP address, default port 3333)
-- **Username**: Your Bitcoin address, optionally with a worker name (e.g., `bc1q8qkesw5kyplv7hdxyseqls5m78w5tqdfd40lf5.worker1`)
+- **Username**: Your WJK address, optionally with a worker name (e.g., `WYourWJKaddress.worker1`)
 - **Password**: `x, diff=200`
     - `x` - Default password (any value accepted)
     - `diff=X` - Suggest difficulty where `X` is numeric (e.g., `diff=200` or `diff=0.001`).
 
-Any valid Bitcoin address works as the username. Append `.workername` to track multiple miners separately.
+Any valid WJK address works as the username. WJK mainnet addresses start with `W`. Append `.workername` to track multiple miners separately.
 
 ---
 
@@ -266,23 +253,23 @@ Any valid Bitcoin address works as the username. Append `.workername` to track m
 
 All configuration options are listed below.
 
-**"btcd"** : Bitcoind connection configuration. **REQUIRED**
+**"btcd"** : Wojakcoind connection configuration. **REQUIRED**
 - Type: Array of objects
-- Purpose: Each object defines a bitcoind instance connection
+- Purpose: Each object defines a wojakcoind instance connection
 - Object fields:
-  - **"url"** (string, required): Bitcoind RPC endpoint (IP:port or hostname:port)
+  - **"url"** (string, required): Wojakcoind RPC endpoint (IP:port or hostname:port)
   - **"auth"** (string, required): RPC username for authentication
   - **"pass"** (string, required): RPC password for authentication
-  - **"cookie"** (string, optional): Path to bitcoind cookie file (alternative to auth/pass)
+  - **"cookie"** (string, optional): Path to wojakcoind cookie file (alternative to auth/pass)
   - **"notify"** (boolean, optional): Enable block template notifications from this node
-- Default: localhost:8332 with user "user" and password "pass" if not specified
+- Default: localhost:20760 with user "user" and password "pass" if not specified
 - Note: Cookie-based authentication can be used as an alternative to auth/pass by
-  specifying the cookie file path. Multiple bitcoind instances can be configured for redundancy.
+  specifying the cookie file path. Multiple wojakcoind instances can be configured for redundancy.
 - Example:
 ```json
 "btcd" : [
     {
-        "url" : "127.0.0.1:8332",
+        "url" : "127.0.0.1:20760",
         "auth" : "username",
         "pass" : "password",
         "notify" : true
@@ -290,12 +277,12 @@ All configuration options are listed below.
 ]
 ```
 
-**"donaddress"** : Bitcoin address for donation payments. **OPTIONAL**
+**"donaddress"** : WJK address for donation payments. **OPTIONAL**
 - Type: String
-- Values: Any valid Bitcoin address
-- Default: bc1q8qkesw5kyplv7hdxyseqls5m78w5tqdfd40lf5
+- Values: Any valid WJK mainnet address (starts with `W`)
+- Default: WYNZktmkqQsJz9YAYRguWHAtWsyaHhzDg9
 - Note: Only used when "donation" is configured and greater than 0.
-- Example: `"donaddress" : "bc1q..."`
+- Example: `"donaddress" : "WYourWJKaddress"`
 
 **"donation"** : Percentage of block reward to donate. **OPTIONAL**
 - Type: Double
@@ -376,17 +363,17 @@ All configuration options are listed below.
 - Default: "1fffe000"
 - Example: `"version_mask" : "1fffe000"`
 
-**"blockpoll"** : Frequency to poll bitcoind for new blocks. **OPTIONAL**
+**"blockpoll"** : Frequency to poll wojakcoind for new blocks. **OPTIONAL**
 - Type: Integer
 - Values: Milliseconds
-- Default: 100
-- Note: Only used if "notify" is not set on btcd entry.
+- Default: 5000
+- Note: Only used if "notify" is not set on btcd entry. WJK has ~2 minute blocks; 5000ms polls detect a new block within ~4% of block time.
 
 **"zmqblock"** : ZMQ interface for block notifications. **OPTIONAL**
 - Type: String
 - Values: ZMQ URL format
-- Default: "tcp://127.0.0.1:28332"
-- Note: Requires bitcoind -zmqpubhashblock option.
+- Default: "tcp://127.0.0.1:28340"
+- Note: Requires wojakcoind -zmqpubhashblock option. Match this to the zmqpubhashblock address in wojakcoind's config.
 
 **"logdir"** : Directory for logs. **OPTIONAL**
 - Type: String
@@ -429,6 +416,6 @@ All configuration options are listed below.
 
 ## Other Modes
 
-ckpool-lhr is optimized and documented for solo mining. Although it inherits all capabilities from upstream CKPool, other modes are untested and therefore unsupported.
+ckpool-lhr-wjk is optimized and documented for solo mining. Although it inherits all capabilities from upstream CKPool, other modes are untested and therefore unsupported.
 
 For documentation on pool, proxy, and passthrough modes, please refer to the [original CKPool documentation](https://bitbucket.org/ckolivas/ckpool).
